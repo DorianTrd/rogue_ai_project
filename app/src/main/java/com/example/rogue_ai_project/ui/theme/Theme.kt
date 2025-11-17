@@ -1,58 +1,49 @@
 package com.example.rogue_ai_project.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+
+// Couleurs du jeu
+object RogueAIColors {
+    val DarkBackground = Color(0xFF1A1A2E)
+    val DarkSurface = Color(0xFF16213E)
+    val CardBackground = Color(0xFF1E1E2E)
+    val CardBorder = Color(0xFF2A2A3E)
+
+    val CyanNeon = Color(0xFF00D9FF)
+    val GreenNeon = Color(0xFF00FF88)
+    val OrangeNeon = Color(0xFFFFAA00)
+    val RedDanger = Color(0xFFFF3333)
+    val PurpleNeon = Color(0xFFAA00FF)
+
+    val TextPrimary = Color.White
+    val TextSecondary = Color(0xFFB8B8D1)
+    val TextDisabled = Color(0xFF666677)
+}
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = RogueAIColors.CyanNeon,
+    secondary = RogueAIColors.GreenNeon,
+    tertiary = RogueAIColors.OrangeNeon,
+    error = RogueAIColors.RedDanger,
+    background = RogueAIColors.DarkBackground,
+    surface = RogueAIColors.DarkSurface,
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onBackground = RogueAIColors.TextPrimary,
+    onSurface = RogueAIColors.TextPrimary
 )
 
 @Composable
-fun Rogue_ai_projectTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+fun RogueAITheme(
+    darkTheme: Boolean = true, // Toujours dark
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+        colorScheme = DarkColorScheme,
+        typography = Typography(),
         content = content
     )
 }
