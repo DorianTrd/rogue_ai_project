@@ -51,7 +51,6 @@ fun HomeScreen(
                 showRobot = true
             }
 
-            // animation de flottement
             val infinite = rememberInfiniteTransition()
             val floatOffset by infinite.animateFloat(
                 initialValue = 0f,
@@ -82,16 +81,93 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "ROGUE AI",
-                    style = MaterialTheme.typography.displayLarge,
-                    fontWeight = FontWeight.Black,
-                    color = RogueAIColors.CyanNeon,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 64.sp
-                )
+                  Box(contentAlignment = Alignment.Center) {
+                    val outlineOffset = 3.dp
 
-                Spacer(modifier = Modifier.height(16.dp))
+                       Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = outlineOffset, y = outlineOffset)
+                    )
+                    Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = -outlineOffset, y = outlineOffset)
+                    )
+                    Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = outlineOffset, y = -outlineOffset)
+                    )
+                    Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = -outlineOffset, y = -outlineOffset)
+                    )
+                    Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = 0.dp, y = outlineOffset)
+                    )
+                    Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = 0.dp, y = -outlineOffset)
+                    )
+                    Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = outlineOffset, y = 0.dp)
+                    )
+                    Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp,
+                        modifier = Modifier.offset(x = -outlineOffset, y = 0.dp)
+                    )
+
+                     Text(
+                        text = "ROGUE AI",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black,
+                        color = RogueAIColors.CyanNeon,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 64.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(50.dp))
 
                 Text(
                     text = "Jouez ensemble. Survivez 45s.\nEmpêchez l'IA de dominer le monde.",
