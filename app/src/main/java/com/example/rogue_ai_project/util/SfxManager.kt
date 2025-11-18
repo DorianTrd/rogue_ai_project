@@ -14,16 +14,16 @@ class SfxManager(private val context: Context) {
     private var randomJob: Job? = null
 
     enum class SfxType {
-        BUTTON_CLICK, TOGGLE_ON, TOGGLE_OFF, SLIDER_MOVE, ALARM, SUCCESS, FAILURE, COUNTDOWN, EXPLOSION, VICTORY_FANFARE,
-        // Nouveaux sons :
-        AMONG_US, BROOK_LAUGHTER,  CLASH_ROYALE, DARK_VADER, DATTEBAYO, ELDEN_RING, MALENIA, PIGMEN, THE_WITCHER_3
+          AMONG_US, BROOK_LAUGHTER, CLASH_ROYALE, DATTEBAYO, PIGMEN, THE_WITCHER_3
     }
 
     private val randomSfxList = listOf(
-        SfxType.BUTTON_CLICK, SfxType.TOGGLE_ON, SfxType.TOGGLE_OFF, SfxType.SLIDER_MOVE, SfxType.ALARM,
-        SfxType.SUCCESS, SfxType.FAILURE, SfxType.COUNTDOWN, SfxType.EXPLOSION,
-        SfxType.AMONG_US, SfxType.BROOK_LAUGHTER,SfxType.CLASH_ROYALE, SfxType.DARK_VADER,
-        SfxType.DATTEBAYO, SfxType.ELDEN_RING, SfxType.MALENIA, SfxType.PIGMEN, SfxType.THE_WITCHER_3
+        SfxType.AMONG_US,
+        SfxType.BROOK_LAUGHTER,
+        SfxType.CLASH_ROYALE,
+        SfxType.DATTEBAYO,
+        SfxType.PIGMEN,
+        SfxType.THE_WITCHER_3
     )
 
     init {
@@ -47,10 +47,7 @@ class SfxManager(private val context: Context) {
         soundIds[SfxType.AMONG_US] = soundPool?.load(context, R.raw.among_us, 1) ?: 0
         soundIds[SfxType.BROOK_LAUGHTER] = soundPool?.load(context, R.raw.brook_laughter, 1) ?: 0
         soundIds[SfxType.CLASH_ROYALE] = soundPool?.load(context, R.raw.clash_royale, 1) ?: 0
-        soundIds[SfxType.DARK_VADER] = soundPool?.load(context, R.raw.dark_vador, 1) ?: 0
         soundIds[SfxType.DATTEBAYO] = soundPool?.load(context, R.raw.dattebayo, 1) ?: 0
-        soundIds[SfxType.ELDEN_RING] = soundPool?.load(context, R.raw.elden_ring, 1) ?: 0
-        soundIds[SfxType.MALENIA] = soundPool?.load(context, R.raw.malenia, 1) ?: 0
         soundIds[SfxType.PIGMEN] = soundPool?.load(context, R.raw.pigmen, 1) ?: 0
         soundIds[SfxType.THE_WITCHER_3] = soundPool?.load(context, R.raw.the_witcher_3, 1) ?: 0
     }
