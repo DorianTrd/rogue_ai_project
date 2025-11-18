@@ -35,27 +35,3 @@ fun RogueAIBackground(
         content()
     }
 }
-
-@Composable
-fun RogueAICard(
-    modifier: Modifier = Modifier,
-    glowing: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = RogueAIColors.CardBackground
-        ),
-        border = BorderStroke(
-            if (glowing) 2.dp else 1.dp,
-            if (glowing) RogueAIColors.CyanNeon else RogueAIColors.CardBorder
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            content = content
-        )
-    }
-}

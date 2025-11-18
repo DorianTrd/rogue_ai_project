@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.rogue_ai_project.model.Command
 import com.example.rogue_ai_project.model.Instruction
+import androidx.compose.foundation.layout.statusBarsPadding
 
 @Composable
 fun GameScreen(
@@ -48,6 +49,7 @@ fun GameScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
@@ -510,7 +512,7 @@ fun OnOffButtonControl(
                 Text(
                     text = if (isActive) "■" else "□",
                     style = MaterialTheme.typography.headlineLarge,
-                    fontSize = 40.sp,
+                    fontSize = 32.sp,
                     color = if (isActive) Color.Black else Color(0xFF00D9FF)
                 )
                 Text(

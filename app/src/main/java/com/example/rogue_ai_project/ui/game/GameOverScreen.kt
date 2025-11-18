@@ -1,7 +1,9 @@
 package com.example.rogue_ai_project.ui.game
 
+import android.R.attr.centerX
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -13,10 +15,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.rogue_ai_project.R
 import com.example.rogue_ai_project.ui.theme.RogueAIColors
 import kotlin.math.cos
 import kotlin.math.sin
@@ -145,6 +153,17 @@ fun VictoryAnimation(started: Boolean) {
             repeatMode = RepeatMode.Reverse
         ),
         label = "jump"
+    )
+
+    // ⭐️ NOUVELLE ANIMATION pour la chute des confettis (va de 0f à 1f et RESTART) ⭐️
+    val confettiDropProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3500, easing = LinearEasing), // 3.5s pour la chute
+            repeatMode = RepeatMode.Restart // IMPORTANT : recommence du début au lieu de faire l'aller-retour
+        ),
+        label = "confetti_drop"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
@@ -280,7 +299,9 @@ fun VictoryAnimation(started: Boolean) {
         // Confettis
         for (j in 0..30) {
             val confettiX = (size.width * ((j * 37) % 100) / 100f)
-            val confettiY = (size.height * 0.3f) + ((twinkle + j * 0.1f) % 1f) * size.height * 0.5f
+            val dropProgress = (confettiDropProgress + j * 0.1f) % 1f
+            val confettiY = dropProgress * size.height
+
             drawRect(
                 color = when (j % 4) {
                     0 -> RogueAIColors.CyanNeon
@@ -299,6 +320,12 @@ fun VictoryAnimation(started: Boolean) {
 fun DefeatAnimation(started: Boolean) {
     val animatedProgress = remember { Animatable(0f) }
 
+    // ⚠️ Assurez-vous que R.drawable.terre est correct (la référence à votre PNG)
+    val earthImage = painterResource(id = R.drawable.terre)
+
+    // Taille de la planète en DP, utilisée pour l'Image et convertie en px pour le Canvas
+    val earthRadius = 120.dp
+
     LaunchedEffect(started) {
         if (started) {
             animatedProgress.animateTo(
@@ -308,276 +335,211 @@ fun DefeatAnimation(started: Boolean) {
         }
     }
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val centerX = size.width / 2
-        val startY = size.height * 0.1f
-        val earthCenterY = size.height * 0.7f
+    // Utilisation d'un Box pour superposer l'image PNG et le Canvas
+    Box(modifier = Modifier.fillMaxSize()) {
 
-        // Trajectoire de la bombe
         val progress = animatedProgress.value
-        val bombPhase = (progress * 1.3f).coerceAtMost(1f)
-        val bombY = startY + (earthCenterY - startY - 200f) * bombPhase
-        val bombX = centerX + sin(bombPhase * 3.14f * 2) * 80f
 
-        // TERRE DÉTAILLÉE (beaucoup plus grande)
-        val earthRadius = 200f
-        val earthY = earthCenterY
+        // Placement du PNG de la Terre
+        if (progress < 0.92f) {
+            // Positionnement Y fixe approximatif pour que le centre soit à 70% de la hauteur
+            val earthCenterYOffsetDp = 560.dp
 
-        // Terre - Océans (fond bleu)
-        drawCircle(
-            color = Color(0xFF1E88E5),
-            radius = earthRadius,
-            center = Offset(centerX, earthY)
-        )
-
-        // Continents (formes organiques)
-        // Amérique
-        val americaPath = Path().apply {
-            moveTo(centerX - 50f, earthY - 100f)
-            cubicTo(
-                centerX - 30f, earthY - 120f,
-                centerX - 10f, earthY - 100f,
-                centerX, earthY - 80f
+            Image(
+                painter = earthImage,
+                contentDescription = "La Terre",
+                modifier = Modifier
+                    .size(earthRadius * 2f) // La taille de l'image est 240dp (120dp * 2)
+                    .align(Alignment.TopCenter)
+                    // Positionnement vertical de l'image (Center Y - Radius)
+                    .offset(y = earthCenterYOffsetDp - earthRadius)
+                // ⭐️ SUPPRIMÉ : graphicsLayer pour l'opacité. L'image NE DISPARAÎT PLUS progressivement.
             )
-            cubicTo(
-                centerX - 20f, earthY - 60f,
-                centerX - 40f, earthY - 40f,
-                centerX - 60f, earthY - 20f
-            )
-            cubicTo(
-                centerX - 70f, earthY - 50f,
-                centerX - 70f, earthY - 80f,
-                centerX - 50f, earthY - 100f
-            )
-            close()
         }
-        drawPath(americaPath, color = Color(0xFF4CAF50))
 
-        // Europe/Afrique
-        val africaPath = Path().apply {
-            moveTo(centerX + 20f, earthY - 80f)
-            cubicTo(
-                centerX + 40f, earthY - 90f,
-                centerX + 60f, earthY - 70f,
-                centerX + 70f, earthY - 40f
-            )
-            cubicTo(
-                centerX + 80f, earthY,
-                centerX + 70f, earthY + 40f,
-                centerX + 50f, earthY + 60f
-            )
-            cubicTo(
-                centerX + 30f, earthY + 40f,
-                centerX + 10f, earthY,
-                centerX + 20f, earthY - 40f
-            )
-            close()
-        }
-        drawPath(africaPath, color = Color(0xFF66BB6A))
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            // Ces variables DOIVENT être à l'intérieur du Canvas
+            val centerX = size.width / 2
+            val earthCanvasY = size.height * 0.7f // 0.7f de la hauteur du Canvas (en pixels)
 
-        // Asie
-        val asiaPath = Path().apply {
-            moveTo(centerX + 80f, earthY - 100f)
-            cubicTo(
-                centerX + 120f, earthY - 80f,
-                centerX + 140f, earthY - 40f,
-                centerX + 120f, earthY
-            )
-            cubicTo(
-                centerX + 100f, earthY - 20f,
-                centerX + 90f, earthY - 60f,
-                centerX + 80f, earthY - 100f
-            )
-            close()
-        }
-        drawPath(asiaPath, color = Color(0xFF81C784))
+            val startY = size.height * 0.1f
+            // Conversion des dp en pixels pour le Canvas
+            val earthCanvasRadius = earthRadius.toPx()
 
-        // Nuages blancs
-        drawCircle(
-            color = Color.White.copy(alpha = 0.4f),
-            radius = 40f,
-            center = Offset(centerX - 100f, earthY + 50f)
-        )
-        drawCircle(
-            color = Color.White.copy(alpha = 0.3f),
-            radius = 30f,
-            center = Offset(centerX + 120f, earthY - 80f)
-        )
+            // Trajectoire de la bombe
+            val bombPhase = (progress * 1.3f).coerceAtMost(1f)
+            // Calcul de Y de la bombe en utilisant earthCanvasY et earthCanvasRadius
+            val bombY = startY + (earthCanvasY - startY - earthCanvasRadius) * bombPhase
+            val bombX = centerX + sin(bombPhase * 3.14f * 2) * 80f
 
-        // Dessiner la bombe GROSSE et détaillée
-        if (bombPhase < 0.92f) {
-            val bombSize = 60f
+            // Dessiner la bombe GROSSE et détaillée
+            if (bombPhase < 0.92f) {
+                val bombSize = 60f
 
-            // Ombre de la bombe sur la terre
-            val shadowAlpha = (1f - bombPhase) * 0.3f
-            drawCircle(
-                color = Color.Black.copy(alpha = shadowAlpha),
-                radius = 80f + bombPhase * 100f,
-                center = Offset(centerX, earthY - earthRadius)
-            )
-
-            // Corps principal de la bombe (métal noir)
-            drawCircle(
-                color = Color(0xFF1A1A1A),
-                radius = bombSize,
-                center = Offset(bombX, bombY)
-            )
-
-            // Reflet métallique
-            drawCircle(
-                color = Color(0xFF444444),
-                radius = bombSize * 0.8f,
-                center = Offset(bombX, bombY)
-            )
-
-            // Bande rouge danger
-            drawRect(
-                color = RogueAIColors.RedDanger,
-                topLeft = Offset(bombX - bombSize, bombY - 10f),
-                size = androidx.compose.ui.geometry.Size(bombSize * 2, 20f)
-            )
-
-            // Symbole radioactif
-            val nuclearSymbol = Path().apply {
-                addOval(
-                    androidx.compose.ui.geometry.Rect(
-                        bombX - 15f, bombY - 15f,
-                        bombX + 15f, bombY + 15f
-                    )
-                )
-            }
-            drawPath(nuclearSymbol, color = Color.Yellow, style = Stroke(width = 3f))
-
-            // Aileron stabilisateur
-            val finPath = Path().apply {
-                moveTo(bombX - bombSize * 0.7f, bombY + bombSize * 0.5f)
-                lineTo(bombX - bombSize * 1.2f, bombY + bombSize * 1.2f)
-                lineTo(bombX - bombSize * 0.4f, bombY + bombSize * 0.8f)
-                close()
-            }
-            drawPath(finPath, color = Color(0xFF2A2A2A))
-
-            // Mèche qui brûle
-            val fuseLength = 100f
-            val fusePath = Path().apply {
-                moveTo(bombX, bombY - bombSize)
-                cubicTo(
-                    bombX - 20f, bombY - bombSize - 30f,
-                    bombX - 30f, bombY - bombSize - 60f,
-                    bombX - 15f, bombY - bombSize - fuseLength
-                )
-            }
-            drawPath(
-                path = fusePath,
-                color = Color(0xFF5D4037),
-                style = Stroke(width = 8f)
-            )
-
-            // Étincelles sur la mèche
-            for (i in 0..5) {
-                val sparkProgress = (bombPhase * 10f + i) % 1f
-                val sparkY = bombY - bombSize - fuseLength * sparkProgress
-                val sparkX = bombX - 15f + sin(sparkProgress * 3.14f) * 10f
+                // Ombre de la bombe sur la terre
+                val shadowAlpha = (1f - bombPhase) * 0.3f
                 drawCircle(
-                    color = RogueAIColors.OrangeNeon.copy(alpha = 1f - sparkProgress),
-                    radius = 6f * (1f - sparkProgress),
-                    center = Offset(sparkX, sparkY)
+                    color = Color.Black.copy(alpha = shadowAlpha),
+                    radius = 80f + bombPhase * 100f,
+                    center = Offset(centerX, earthCanvasY - earthCanvasRadius)
+                )
+
+                // Corps principal de la bombe (métal noir)
+                drawCircle(
+                    color = Color(0xFF1A1A1A),
+                    radius = bombSize,
+                    center = Offset(bombX, bombY)
+                )
+
+                // Reflet métallique
+                drawCircle(
+                    color = Color(0xFF444444),
+                    radius = bombSize * 0.8f,
+                    center = Offset(bombX, bombY)
+                )
+
+                // Bande rouge danger
+                drawRect(
+                    color = RogueAIColors.RedDanger,
+                    topLeft = Offset(bombX - bombSize, bombY - 10f),
+                    size = androidx.compose.ui.geometry.Size(bombSize * 2, 20f)
+                )
+
+                // Symbole radioactif
+                val nuclearSymbol = Path().apply {
+                    addOval(
+                        androidx.compose.ui.geometry.Rect(
+                            bombX - 15f, bombY - 15f,
+                            bombX + 15f, bombY + 15f
+                        )
+                    )
+                }
+                drawPath(nuclearSymbol, color = Color.Yellow, style = Stroke(width = 3f))
+
+                // Aileron stabilisateur
+                val finPath = Path().apply {
+                    moveTo(bombX - bombSize * 0.7f, bombY + bombSize * 0.5f)
+                    lineTo(bombX - bombSize * 1.2f, bombY + bombSize * 1.2f)
+                    lineTo(bombX - bombSize * 0.4f, bombY + bombSize * 0.8f)
+                    close()
+                }
+                drawPath(finPath, color = Color(0xFF2A2A2A))
+
+                // Mèche qui brûle
+                val fuseLength = 100f
+                val fusePath = Path().apply {
+                    moveTo(bombX, bombY - bombSize)
+                    cubicTo(
+                        bombX - 20f, bombY - bombSize - 30f,
+                        bombX - 30f, bombY - bombSize - 60f,
+                        bombX - 15f, bombY - bombSize - fuseLength
+                    )
+                }
+                drawPath(
+                    path = fusePath,
+                    color = Color(0xFF5D4037),
+                    style = Stroke(width = 8f)
+                )
+
+                // Étincelles sur la mèche
+                for (i in 0..5) {
+                    val sparkProgress = (bombPhase * 10f + i) % 1f
+                    val sparkY = bombY - bombSize - fuseLength * sparkProgress
+                    val sparkX = bombX - 15f + sin(sparkProgress * 3.14f) * 10f
+                    drawCircle(
+                        color = RogueAIColors.OrangeNeon.copy(alpha = 1f - sparkProgress),
+                        radius = 6f * (1f - sparkProgress),
+                        center = Offset(sparkX, sparkY)
+                    )
+                }
+
+                // Flamme de la mèche (grosse et animée)
+                val flameSize = 15f + sin(bombPhase * 20f) * 5f
+                drawCircle(
+                    color = RogueAIColors.OrangeNeon,
+                    radius = flameSize,
+                    center = Offset(bombX - 15f, bombY - bombSize - fuseLength)
+                )
+                drawCircle(
+                    color = Color.Yellow,
+                    radius = flameSize * 0.6f,
+                    center = Offset(bombX - 15f, bombY - bombSize - fuseLength)
                 )
             }
 
-            // Flamme de la mèche (grosse et animée)
-            val flameSize = 15f + sin(bombPhase * 20f) * 5f
-            drawCircle(
-                color = RogueAIColors.OrangeNeon,
-                radius = flameSize,
-                center = Offset(bombX - 15f, bombY - bombSize - fuseLength)
-            )
-            drawCircle(
-                color = Color.Yellow,
-                radius = flameSize * 0.6f,
-                center = Offset(bombX - 15f, bombY - bombSize - fuseLength)
-            )
-        }
+            // EXPLOSION MASSIVE avec destruction de la terre
+            if (progress >= 0.92f) {
+                val explosionProgress = (progress - 0.92f) / 0.08f
+                val explosionRadius = 400f * explosionProgress
 
-        // EXPLOSION MASSIVE avec destruction de la terre
-        if (progress >= 0.92f) {
-            val explosionProgress = (progress - 0.92f) / 0.08f
-            val explosionRadius = 400f * explosionProgress
+                // ⭐️ MODIFICATION : Décalage vertical de l'épicentre (maintenant 80% du rayon)
+                val explosionCenterY = earthCanvasY - earthCanvasRadius + (earthCanvasRadius * 0.8f)
 
-            // Onde de choc
-            drawCircle(
-                color = Color.White.copy(alpha = (1f - explosionProgress) * 0.8f),
-                radius = explosionRadius * 1.2f,
-                center = Offset(centerX, earthY - earthRadius)
-            )
+                // Onde de choc
+                drawCircle(
+                    color = Color.White.copy(alpha = (1f - explosionProgress) * 0.8f),
+                    radius = explosionRadius * 1.2f,
+                    center = Offset(centerX, explosionCenterY)
+                )
 
-            // Explosion principale (plusieurs couches)
-            drawCircle(
-                color = RogueAIColors.OrangeNeon.copy(alpha = 1f - explosionProgress * 0.7f),
-                radius = explosionRadius,
-                center = Offset(centerX, earthY - earthRadius)
-            )
-            drawCircle(
-                color = RogueAIColors.RedDanger.copy(alpha = 1f - explosionProgress * 0.7f),
-                radius = explosionRadius * 0.75f,
-                center = Offset(centerX, earthY - earthRadius)
-            )
-            drawCircle(
-                color = Color.Yellow.copy(alpha = 1f - explosionProgress * 0.7f),
-                radius = explosionRadius * 0.5f,
-                center = Offset(centerX, earthY - earthRadius)
-            )
-            drawCircle(
-                color = Color.White.copy(alpha = 1f - explosionProgress),
-                radius = explosionRadius * 0.25f,
-                center = Offset(centerX, earthY - earthRadius)
-            )
+                // Explosion principale (plusieurs couches)
+                drawCircle(
+                    color = RogueAIColors.OrangeNeon.copy(alpha = 1f - explosionProgress),
+                    radius = explosionRadius,
+                    center = Offset(centerX, explosionCenterY)
+                )
+                drawCircle(
+                    color = RogueAIColors.RedDanger.copy(alpha = 1f - explosionProgress),
+                    radius = explosionRadius * 0.75f,
+                    center = Offset(centerX, explosionCenterY)
+                )
+                drawCircle(
+                    color = Color.Yellow.copy(alpha = 1f - explosionProgress),
+                    radius = explosionRadius * 0.5f,
+                    center = Offset(centerX, explosionCenterY)
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 1f - explosionProgress),
+                    radius = explosionRadius * 0.25f,
+                    center = Offset(centerX, explosionCenterY)
+                )
 
-            // Débris de la terre qui se dispersent
-            for (i in 0..20) {
-                val angle = (i * 18f) * (3.14f / 180f)
-                val distance = explosionRadius * 0.8f
-                val debrisX = centerX + cos(angle) * distance
-                val debrisY = earthY - earthRadius + sin(angle) * distance
-                val debrisSize = 20f - explosionProgress * 15f
+                // Débris de la terre qui se dispersent
+                for (i in 0..20) {
+                    val angle = (i * 18f) * (3.14f / 180f)
+                    val distance = explosionRadius * 0.8f
+                    val debrisX = centerX + cos(angle) * distance
+                    // Le point de départ des débris est l'explosionCenterY
+                    val debrisY = explosionCenterY + sin(angle) * distance
+                    val debrisSize = 20f - explosionProgress * 15f
 
-                // Morceaux de terre verts
-                if (i % 3 == 0) {
+                    // Débris gris/noir
                     drawCircle(
-                        color = Color(0xFF4CAF50).copy(alpha = 1f - explosionProgress),
+                        color = Color(0xFF424242).copy(alpha = 1f - explosionProgress),
                         radius = debrisSize,
                         center = Offset(debrisX, debrisY)
                     )
                 }
-                // Morceaux d'océan bleus
-                else {
-                    drawCircle(
-                        color = Color(0xFF1E88E5).copy(alpha = 1f - explosionProgress),
-                        radius = debrisSize,
-                        center = Offset(debrisX, debrisY)
-                    )
-                }
-            }
 
-            // Fissures sur la terre restante
-            if (explosionProgress < 0.5f) {
-                for (i in 0..8) {
-                    val crackAngle = (i * 45f) * (3.14f / 180f)
-                    val crackPath = Path().apply {
-                        moveTo(centerX, earthY)
-                        lineTo(
-                            centerX + cos(crackAngle) * earthRadius * (0.5f + explosionProgress),
-                            earthY + sin(crackAngle) * earthRadius * (0.5f + explosionProgress)
+                // Fissures sur la terre restante
+                if (explosionProgress < 0.5f) {
+                    for (i in 0..8) {
+                        val crackAngle = (i * 45f) * (3.14f / 180f)
+                        val crackPath = Path().apply {
+                            moveTo(centerX, earthCanvasY)
+                            lineTo(
+                                centerX + cos(crackAngle) * earthCanvasRadius * (0.5f + explosionProgress),
+                                earthCanvasY + sin(crackAngle) * earthCanvasRadius * (0.5f + explosionProgress)
+                            )
+                        }
+                        drawPath(
+                            crackPath,
+                            color = RogueAIColors.RedDanger.copy(alpha = 0.8f),
+                            style = Stroke(width = 8f)
                         )
                     }
-                    drawPath(
-                        crackPath,
-                        color = RogueAIColors.RedDanger.copy(alpha = 0.8f),
-                        style = Stroke(width = 8f)
-                    )
                 }
             }
         }
     }
 }
-

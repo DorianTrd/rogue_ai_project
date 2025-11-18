@@ -169,7 +169,6 @@ class RoomSocket(
             )
         }
 
-        // network/RoomSocket.kt - Dans parseGameState
         private fun parseGameState(root: JSONObject) {
             val payload = root.optJSONObject("payload") ?: return
             val state = payload.optString("state")
@@ -185,9 +184,9 @@ class RoomSocket(
                 }
             }
 
-            // IMPORTANT : Vérifier si "win" existe et sa valeur
+
             val winValue = if (payload.has("win")) {
-                payload.getBoolean("win") // Utilise getBoolean au lieu de optBoolean
+                payload.getBoolean("win")
             } else {
                 null
             }
@@ -259,7 +258,6 @@ class RoomSocket(
         }
     }
 
-    // network/RoomSocket.kt
     fun resetAll() {
         closeRoomConnection()
         _roomInfo.value = null
