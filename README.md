@@ -77,7 +77,7 @@ com.example.rogue_ai_project/
 │ │ ├─ LobbyScreen.kt
 │ │ ├─ LobbyViewModel.kt
 │ │ └─ LobbyViewModelFactory.kt
-│ └─ theme/                 # Theme, Color, Type definitions
+│ └─ theme/ # Theme, Color, Type definitions
 │
 ├─ util/
 │ ├─ SfxManager.kt
