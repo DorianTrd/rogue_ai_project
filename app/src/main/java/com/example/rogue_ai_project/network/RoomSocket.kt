@@ -22,6 +22,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
+/**
+ * Manages a WebSocket connection to a game room backend.
+ * Provides state flows for connection status, room info, game state, player board and errors.
+ */
 class RoomSocket(
     private val client: OkHttpClient = defaultClient(),
     private val baseUrl: String = "wss://backend.rogueai.surpuissant.io"
@@ -44,6 +48,13 @@ class RoomSocket(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    /**
+     * Open a WebSocket connection for the given room code and attach the provided coroutine scope.
+     * Creates a listener that updates the internal state flows when messages arrive.
+     *
+     * @param roomCode room identifier used as query parameter on the WebSocket URL.
+     * @param coroutineScope scope used to launch coroutine work for incoming messages and callbacks.
+     */
     fun openRoomConnection(roomCode: String, coroutineScope: CoroutineScope) {
         scope = coroutineScope
         closeRoomConnection()
@@ -63,13 +74,24 @@ class RoomSocket(
 
         webSocket = client.newWebSocket(request, listener)
     }
-
+    /**
+     * Close the current WebSocket connection if any.
+     *
+     * @param code WebSocket close code (default 1000 normal closure).
+     * @param reason textual reason for closing.
+     */
     fun closeRoomConnection(code: Int = 1000, reason: String = "client closing") {
         webSocket?.close(code, reason)
         webSocket = null
         _connected.value = false
     }
 
+    /**
+     * Send a ready/unready message to the room via WebSocket.
+     *
+     * @param ready true if player is ready, false otherwise.
+     * @return true if the message was queued/sent, false if no websocket is available.
+     */
     fun sendReady(ready: Boolean): Boolean {
         val msg = JSONObject()
             .put("type", "room")
@@ -78,6 +100,11 @@ class RoomSocket(
         return webSocket?.send(msg) ?: false
     }
 
+    /**
+     * Send a refresh_name request to the server to update the player's display name.
+     *
+     * @return true if the message was queued/sent, false if no websocket is available.
+     */
     fun refreshName(): Boolean {
         val msg = JSONObject()
             .put("type", "refresh_name")
@@ -85,6 +112,13 @@ class RoomSocket(
         return webSocket?.send(msg) ?: false
     }
 
+    /**
+     * Send an execute_action message for a specific command.
+     *
+     * @param commandId id of the command to execute.
+     * @param action the action name to perform.
+     * @return true if the message was queued/sent, false if no websocket is available.
+     */
     fun sendExecuteAction(commandId: String, action: String): Boolean {
         val payload = JSONObject()
             .put("command_id", commandId)
@@ -96,6 +130,10 @@ class RoomSocket(
         return webSocket?.send(msg) ?: false
     }
 
+    /**
+     * Internal WebSocket listener mapping raw JSON messages to typed model updates.
+     * All callbacks use the provided CoroutineScope to dispatch updates.
+     */
     private inner class RoomWebSocketListener(
         private val scope: CoroutineScope,
         private val onRoomInfo: (RoomInfo) -> Unit,
@@ -105,10 +143,20 @@ class RoomSocket(
         private val onOpenChanged: (Boolean) -> Unit
     ) : WebSocketListener() {
 
+        /**
+         * Called when the WebSocket is successfully opened.
+         * Notifies observers that the connection is open.
+         */
         override fun onOpen(webSocket: WebSocket, response: Response) {
             scope.launch { onOpenChanged(true) }
         }
 
+        /**
+         * Called when a text message is received from the server.
+         * Parses the JSON and delegates to specific parsers based on the "type" field.
+         *
+         * Exceptions during parsing are forwarded to the onError callback.
+         */
         override fun onMessage(webSocket: WebSocket, text: String) {
             scope.launch {
                 try {
@@ -125,10 +173,18 @@ class RoomSocket(
             }
         }
 
+        /**
+         * Called when the WebSocket is closed from the remote side.
+         * Updates the open state to false.
+         */
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
             scope.launch { onOpenChanged(false) }
         }
 
+        /**
+         * Called when the WebSocket encounters a failure.
+         * Reports the failure message and sets the connection state to closed.
+         */
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             scope.launch {
                 onOpenChanged(false)
@@ -136,6 +192,11 @@ class RoomSocket(
             }
         }
 
+        /**
+         * Parse a `room_info` message payload into a RoomInfo model and emit it.
+         *
+         * The method safely accesses fields using opt\* methods and returns early on missing required nodes.
+         */
         private fun parseRoomInfo(root: JSONObject) {
             val payload = root.optJSONObject("payload") ?: return
             val youObj = payload.optJSONObject("you") ?: return
@@ -169,6 +230,12 @@ class RoomSocket(
             )
         }
 
+        /**
+         * Parse a `game_state` message payload into a GameStateMessage model and emit it.
+         *
+         * Handles optional fields like duration, start_threat, game_duration and win.
+         * Also maps tryHistory array into TryHistoryItem list if present.
+         */
         private fun parseGameState(root: JSONObject) {
             val payload = root.optJSONObject("payload") ?: return
             val state = payload.optString("state")
@@ -203,6 +270,11 @@ class RoomSocket(
             onGameState(gameStateMsg)
         }
 
+        /**
+         * Parse a `player_board` message payload into a PlayerBoard model and emit it.
+         *
+         * Converts command list and instruction object into typed models. Returns early if required nodes are missing.
+         */
         private fun parsePlayerBoard(root: JSONObject) {
             val payload = root.optJSONObject("payload") ?: return
             val boardObj = payload.optJSONObject("board") ?: return
@@ -245,6 +317,15 @@ class RoomSocket(
     }
 
     companion object {
+
+        /**
+         * Create a default OkHttpClient for WebSocket usage.
+         *
+         * - sets a basic logging interceptor,
+         * - uses a short connect timeout,
+         * - disables read timeout (websocket keeps connection open),
+         * - sets a ping interval to keep the socket alive.
+         */
         private fun defaultClient(): OkHttpClient {
             val logging = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BASIC
@@ -258,6 +339,10 @@ class RoomSocket(
         }
     }
 
+    /**
+     * Reset all internal state and close any open connection.
+     * Useful when leaving a room or logging out.
+     */
     fun resetAll() {
         closeRoomConnection()
         _roomInfo.value = null

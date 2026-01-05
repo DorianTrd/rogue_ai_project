@@ -11,6 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for the Home screen.
+ *
+ * Handles user actions such as creating or joining a game room.
+ * Exposes UI state via StateFlow to be observed by HomeScreen.
+ */
 class HomeViewModel(
     private val sfxManager: SfxManager,
     private val repository: GameRepository = GameRepository()
@@ -28,6 +34,14 @@ class HomeViewModel(
     private val _navigationEvent = MutableStateFlow<String?>(null)
     val navigationEvent: StateFlow<String?> = _navigationEvent.asStateFlow()
 
+    /**
+     * Creates a new game room.
+     *
+     * - Shows loading indicator
+     * - Calls repository to create the room
+     * - Emits navigation event on success
+     * - Updates error message on failure
+     */
     fun createRoom() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -46,6 +60,15 @@ class HomeViewModel(
         }
     }
 
+    /**
+     * Joins an existing game room by code.
+     *
+     * - Normalizes the code
+     * - Validates code format
+     * - Checks if room exists
+     * - Emits navigation event on success
+     * - Updates error message on failure
+     */
     fun joinRoom(code: String) {
         val normalized = normalizeRoomCode(code)
 
@@ -73,6 +96,12 @@ class HomeViewModel(
             _isLoading.value = false
         }
     }
+
+    /**
+     * Clears navigation and room code state.
+     *
+     * Called after navigating to avoid repeated navigation events.
+     */
 
     fun clearNavigation() {
         _navigationEvent.value = null

@@ -6,6 +6,13 @@ import com.example.rogue_ai_project.network.RoomSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Repository responsible for lobby-related operations.
+ *
+ * This repository acts as an abstraction layer over [RoomSocket],
+ * exposing only the data and actions required during the lobby phase
+ * (room connection, player readiness, room state updates).
+ */
 class LobbyRepository(private val socket: RoomSocket) {
 
     fun connect(roomCode: String, scope: CoroutineScope) =

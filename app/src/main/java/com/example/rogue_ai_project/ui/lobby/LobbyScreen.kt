@@ -12,6 +12,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.rogue_ai_project.model.LobbyPlayer
 
+/**
+ * Lobby screen composable.
+ *
+ * Displays:
+ * - Room code and player list
+ * - Player ready status
+ * - Buttons to change name, toggle ready, and go back
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LobbyScreen(
@@ -130,6 +138,12 @@ fun LobbyScreen(
     }
 }
 
+/**
+ * Composable displaying a single player's info in the lobby.
+ *
+ * - Highlights if the player is ready
+ * - Shows host badge if player is host
+ */
 @Composable
 fun PlayerCard(player: LobbyPlayer) {
     Card(

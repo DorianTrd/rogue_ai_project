@@ -28,11 +28,23 @@ import com.example.rogue_ai_project.model.Command
 import com.example.rogue_ai_project.model.Instruction
 import androidx.compose.foundation.layout.statusBarsPadding
 
+
+/**
+ * Main gameplay screen composable.
+ *
+ * Displays:
+ * - Threat level and timer via [GameHeader]
+ * - Current instruction via [InstructionCard]
+ * - Player command panels via a lazy grid of [CommandCard]
+ */
+
 @Composable
 fun GameScreen(
     viewModel: GameViewModel,
     onGameOver: (Boolean) -> Unit
 ) {
+
+    // Collect state from ViewModel
     val commands by viewModel.commands.collectAsStateWithLifecycle()
     val instruction by viewModel.instruction.collectAsStateWithLifecycle()
     val threat by viewModel.threat.collectAsStateWithLifecycle()
@@ -105,6 +117,14 @@ fun GameScreen(
     }
 }
 
+/**
+ * Displays the top header of the game screen.
+ *
+ * Shows:
+ * - Threat percentage with pulsing animation for high threat
+ * - Remaining time for current instruction
+ * - Gradient progress bar for threat visualization
+ */
 @Composable
 fun GameHeader(threat: Int, timeRemaining: Long) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -201,6 +221,11 @@ fun GameHeader(threat: Int, timeRemaining: Long) {
     }
 }
 
+/**
+ * Card showing the current instruction to the player.
+ *
+ * Pulses a border glow to indicate active status.
+ */
 @Composable
 fun InstructionCard(instruction: Instruction) {
     val infiniteTransition = rememberInfiniteTransition(label = "glow")

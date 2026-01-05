@@ -22,17 +22,29 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
+/**
+ * Home screen composable.
+ *
+ * Displays the main menu:
+ * - Title with animated robot
+ * - Create/Join room buttons
+ * - Error messages
+ */
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToLobby: (String) -> Unit
 ) {
+    // Observe state from ViewModel
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val navigationEvent by viewModel.navigationEvent.collectAsStateWithLifecycle()
 
     var showJoinDialog by remember { mutableStateOf(false) }
 
+    /**
+     * Navigate to Lobby when a navigation event occurs.
+     */
     LaunchedEffect(navigationEvent) {
         navigationEvent?.let { code ->
             onNavigateToLobby(code)
@@ -244,6 +256,11 @@ fun HomeScreen(
     }
 }
 
+/**
+ * Dialog composable to join a game room by code.
+ *
+ * Ensures code is uppercase and maximum 6 characters.
+ */
 @Composable
 fun JoinGameDialog(
     onDismiss: () -> Unit,

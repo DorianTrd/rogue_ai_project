@@ -14,6 +14,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
+/**
+ * ViewModel for the gameplay screen.
+ *
+ * This ViewModel manages:
+ * - the player's board state (commands, instructions, threat level),
+ * - the remaining time for the current instruction,
+ * - game over and victory state,
+ * - playing sound effects via [SfxManager].
+ *
+ * All flows are exposed as read-only [StateFlow] for the UI.
+ */
 class GameViewModel(
     private val gamePlayRepository: GamePlayRepository,
     private val lobbyRepository: LobbyRepository,
@@ -43,6 +54,11 @@ class GameViewModel(
         observeGame()
     }
 
+    /**
+     * Observe the player board and game state from repositories.
+     *
+     * Updates commands, instruction, threat, remaining time, and game over/victory state.
+     */
     private fun observeGame() {
         viewModelScope.launch {
             gamePlayRepository.observePlayerBoard().collect { board ->
@@ -58,7 +74,7 @@ class GameViewModel(
                 }
             }
         }
-
+        // Observe game state (lobby, end state)
         viewModelScope.launch {
             lobbyRepository.observeGameState().collect { state ->
                 when (state?.state) {
@@ -76,9 +92,8 @@ class GameViewModel(
                 }
             }
         }
-
-        // Ticker coroutine: met à jour le chrono de façon continue en se basant sur l'instruction courante
-        viewModelScope.launch {
+        // Update remaining instruction time every 100ms
+         viewModelScope.launch {
             while (isActive) {
                 val instr = _instruction.value
                 if (instr != null) {
@@ -87,18 +102,24 @@ class GameViewModel(
                     val remaining = (instr.timeout - elapsed).coerceAtLeast(0)
                     _timeRemaining.value = remaining
                 } else {
-                    // Pas d'instruction : afficher 0
                     _timeRemaining.value = 0L
                 }
-                delay(100L) // mise à jour toutes les 100ms
+                delay(100L)
             }
         }
     }
-
+    /**
+     * Send an execute action request for a specific command.
+     */
     fun executeAction(commandId: String, action: String) {
         gamePlayRepository.sendExecuteAction(commandId, action)
     }
 
+    /**
+     * Called when the ViewModel is cleared.
+     *
+     * Stops SFX loop and resets all internal state.
+     */
     override fun onCleared() {
         sfxManager.stopRandomLoop()
         super.onCleared()

@@ -5,6 +5,12 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.rogue_ai_project.data.LobbyRepository
 import com.example.rogue_ai_project.network.RoomSocket
 
+/**
+ * Factory for creating LobbyViewModel instances.
+ *
+ * Allows passing dependencies (roomCode, RoomSocket) to the ViewModel.
+ * Required because LobbyViewModel has constructor parameters.
+ */
 class LobbyViewModelFactory(
     private val roomCode: String,
     private val roomSocket: RoomSocket

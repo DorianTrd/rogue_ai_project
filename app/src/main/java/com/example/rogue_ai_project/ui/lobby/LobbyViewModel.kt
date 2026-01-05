@@ -11,6 +11,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for the Lobby screen.
+ *
+ * Responsible for:
+ * - Managing the list of players
+ * - Tracking ready and host status
+ * - Observing room and game state via LobbyRepository
+ */
 class LobbyViewModel(
     private val roomCode: String,
     private val repository: LobbyRepository = LobbyRepository(RoomSocket())
@@ -33,13 +41,17 @@ class LobbyViewModel(
         observeRoom()
     }
 
+    /**
+     * Observes room info and game state from the repository.
+     */
     private fun observeRoom() {
+        // Observe room info (players, your status, host)
         viewModelScope.launch {
             repository.observeRoomInfo().collect { info ->
                 info?.let { updatePlayers(it) }
             }
         }
-
+        // Observe game state (start of the game)
         viewModelScope.launch {
             repository.observeGameState().collect { state ->
                 if (state?.state == "game_start") {
@@ -49,6 +61,11 @@ class LobbyViewModel(
         }
     }
 
+    /**
+     * Updates the lobby player list and current player's status.
+     *
+     * Determines host (first player in the list) and ready status.
+     */
     private fun updatePlayers(info: RoomInfo) {
         val lobbyPlayers = info.players.map { player ->
             LobbyPlayer(
@@ -63,15 +80,28 @@ class LobbyViewModel(
         _isHost.value = info.you.id == info.players.first().id
     }
 
+    /**
+     * Toggles the ready status of the current player.
+     *
+     * Sends the new ready state to the repository.
+     */
     fun toggleReady() {
         val newReady = !_isReady.value
         repository.sendReady(newReady)
     }
 
+    /**
+     * Requests the repository to refresh the current player's display name.
+     */
     fun refreshName() {
         repository.refreshName()
     }
 
+    /**
+     * Cleanup on ViewModel clearance.
+     *
+     * Disconnects from the room to avoid memory leaks.
+     */
     override fun onCleared() {
         super.onCleared()
         repository.disconnect()

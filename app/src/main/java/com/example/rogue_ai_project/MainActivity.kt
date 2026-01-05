@@ -26,7 +26,18 @@ import com.example.rogue_ai_project.ui.lobby.LobbyViewModelFactory
 import com.example.rogue_ai_project.ui.theme.RogueAITheme
 import com.example.rogue_ai_project.util.SfxManager
 
+
+/**
+ * Main entry point of the application.
+ *
+ * This activity hosts the Jetpack Compose content and initializes
+ * the global UI theme and root composable.
+ */
 class MainActivity : ComponentActivity() {
+    /**
+     * Called when the activity is first created.
+     * Initializes UI and wiring. Typical place to setContentView and findViewById.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -43,6 +54,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Represents all possible navigation destinations of the app.
+ *
+ * Each screen may optionally carry navigation parameters
+ * (such as roomCode or victory state).
+ */
 sealed class Screen {
     object Home : Screen()
     data class Lobby(val roomCode: String) : Screen()
@@ -50,6 +67,12 @@ sealed class Screen {
     data class GameOver(val victory: Boolean) : Screen()
 }
 
+/**
+ * Root composable of the application.
+ *
+ * Manages navigation state, shared dependencies (socket, repository, SFX),
+ * and ViewModel lifecycle across screens.
+ */
 @Composable
 fun RogueAIApp() {
     val context = LocalContext.current
@@ -62,6 +85,11 @@ fun RogueAIApp() {
     val roomSocket = remember(screenKey) { RoomSocket() }
     val sfxManager = remember(screenKey) { SfxManager(context) }
 
+    /**
+     * Cleanup effect triggered when screenKey changes.
+     *
+     * Ensures that sockets are closed and audio resources released.
+     */
     DisposableEffect(screenKey) {
         onDispose {
             roomSocket.resetAll()
@@ -70,18 +98,24 @@ fun RogueAIApp() {
     }
 
     when (val screen = currentScreen) {
+
+        /**
+         * Home screen:
+         * - resets socket state
+         * - initializes HomeViewModel
+         */
         is Screen.Home -> {
             key(screenKey) {
                 roomSocket.resetAll()
 
-                // Fournir une clé unique pour forcer la recréation du ViewModel quand screenKey change
                 val homeViewModel: HomeViewModel = viewModel(
                     key = "home-$screenKey",
                     factory = HomeViewModelFactory(
                         sfxManager = sfxManager,
-                        gameRepository = gameRepository // AJOUT DU PARAMÈTRE MANQUANT
+                        gameRepository = gameRepository
                     )
                 )
+
                 HomeScreen(
                     viewModel = homeViewModel,
                     onNavigateToLobby = { roomCode ->
@@ -91,13 +125,21 @@ fun RogueAIApp() {
             }
         }
 
+        /**
+         * Lobby screen:
+         * - connects to a room
+         * - waits for players
+         */
         is Screen.Lobby -> {
             key(screenKey) {
-                // Utiliser une clé unique qui inclut roomCode et screenKey
                 val lobbyViewModel: LobbyViewModel = viewModel(
                     key = "lobby-${screen.roomCode}-$screenKey",
-                    factory = LobbyViewModelFactory(screen.roomCode, roomSocket)
+                    factory = LobbyViewModelFactory(
+                        screen.roomCode,
+                        roomSocket
+                    )
                 )
+
                 LobbyScreen(
                     viewModel = lobbyViewModel,
                     roomCode = screen.roomCode,
@@ -112,12 +154,21 @@ fun RogueAIApp() {
             }
         }
 
+        /**
+         * Game screen:
+         * - displays the core gameplay
+         * - listens for game over events
+         */
         is Screen.Game -> {
             key(screenKey) {
                 val gameViewModel: GameViewModel = viewModel(
                     key = "game-${screen.roomCode}-$screenKey",
-                    factory = GameViewModelFactory(roomSocket, sfxManager)
+                    factory = GameViewModelFactory(
+                        roomSocket,
+                        sfxManager
+                    )
                 )
+
                 GameScreen(
                     viewModel = gameViewModel,
                     onGameOver = { victory ->
@@ -127,6 +178,11 @@ fun RogueAIApp() {
             }
         }
 
+        /**
+         * Game over screen:
+         * - shows win/lose result
+         * - allows returning to Home
+         */
         is Screen.GameOver -> {
             GameOverScreen(
                 victory = screen.victory,

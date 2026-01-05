@@ -7,9 +7,15 @@ import com.example.rogue_ai_project.data.LobbyRepository
 import com.example.rogue_ai_project.network.RoomSocket
 import com.example.rogue_ai_project.util.SfxManager
 
+/**
+ * Factory responsible for creating instances of [GameViewModel].
+ *
+ * This factory injects all required dependencies needed during
+ * the gameplay phase, including repositories and sound effects manager.
+ */
 class GameViewModelFactory(
     private val roomSocket: RoomSocket,
-    private val sfxManager: SfxManager // L'argument est bien reçu
+    private val sfxManager: SfxManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(GameViewModel::class.java)) {
@@ -17,7 +23,7 @@ class GameViewModelFactory(
             return GameViewModel(
                 gamePlayRepository = GamePlayRepository(roomSocket),
                 lobbyRepository = LobbyRepository(roomSocket),
-                sfxManager = sfxManager // <--- IL FAUT AJOUTER CECI
+                sfxManager = sfxManager
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
