@@ -52,26 +52,32 @@ com.example.rogue_ai_project/
 │ └─ LobbyRepository.kt
 │
 ├─ model/ # Data models
-│ ├─ PlayerBoard.kt
-│ ├─ Command.kt
-│ ├─ Instruction.kt
-│ ├─ GameStateMessage.kt
-│ └─ RoomInfo.kt
+│ ├─ GameModels.kt
+│ ├─ LobbyModels.kt│ 
+│ └─ RoomModels.kt
+│ 
 │
 ├─ network/ # Network communication
 │ ├─ RoomsApi.kt
 │ └─ RoomSocket.kt
 │
 ├─ ui/
-│ ├─ home/
-│ │ ├─ HomeScreen.kt
-│ │ └─ HomeViewModel.kt
+│ ├─ common/
+│ │ └─ RogueAIComponents.kt
 │ ├─ game/
+│ │ ├─ GameOverScreen.kt
 │ │ ├─ GameScreen.kt
 │ │ ├─ GameViewModel.kt
 │ │ └─ GameViewModelFactory.kt
-│ └─ common/
-│ └─ RogueAIBackground.kt
+│ ├─ home/
+│ │ ├─ HomeScreen.kt
+│ │ ├─ HomeViewModel.kt
+│ │ └─ HomeViewModelFactory.kt
+│ ├─ lobby/
+│ │ ├─ LobbyScreen.kt
+│ │ ├─ LobbyViewModel.kt
+│ │ └─ LobbyViewModelFactory.kt
+│ └─ theme/                 # Theme, Color, Type definitions
 │
 ├─ util/
 │ ├─ SfxManager.kt
